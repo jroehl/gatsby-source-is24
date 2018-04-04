@@ -1,0 +1,17 @@
+{
+  "name": "gatsby-source-is24",
+  "version": "1.0.0",
+  "description": "A gatsby source plugin to fetch data from immobilienscout24 api",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "gatsby-node-helpers": "^0.1.4",
+    "oauth-1.0a": "^2.2.4",
+    "request": "^2.85.0",
+    "request-promise-native": "^1.0.5"
+  }
+}
