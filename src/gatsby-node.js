@@ -1,7 +1,7 @@
 const { makeRequest, sanitizeDetails } = require('../lib/misc');
 const cfg = require('../config');
 
-exports.sourceNodes = async (
+module.exports.sourceNodes = async (
   { boundActionCreators: { createNode } },
   {
     // credentials
@@ -15,9 +15,11 @@ exports.sourceNodes = async (
   const { baseUrl, maxPixel, fields } = { ...cfg, ...remaining };
 
   if (!oauth_consumer_key || !consumer_secret || !oauth_token || oauth_token_secret) {
-    console.log('Credentials need to be specified');
+    console.error('Credentials need to be specified');
     process.exit(1);
   }
+
+  console.log('foobar');
 
   // Create nodes here, generally by downloading data
   // from a remote API.

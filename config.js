@@ -1,12 +1,6 @@
 module.exports = {
   baseUrl: 'https://rest.immobilienscout24.de/restapi/api/offer/v1.0/user/me/realestate',
   maxPixel: 3000,
-  // TODO remove
-  oauth_consumer_key: 'VHGruppeDeKey',
-  consumer_secret: 'xyFnxSy1DtpqF47d',
-  oauth_token: '5b376353-c9f5-4ed7-82ba-133954396341',
-  oauth_token_secret: 'SP58GxWdtlEzS6x0nXmn4XyDPbr7wgpNHfSHhr2XVfztvNoJBueHVYa90nlvu27NpHHcGafGhaKiBsvaI3CdZ0FCE2KvBiG6K32JTZPHj5Y=',
-  // EOF remove
   fields: [
     'furnishingNote',
     'locationNote',
