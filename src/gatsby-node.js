@@ -48,13 +48,17 @@ const generateOauthParameters = (url, credentials, method = 'GET') => {
 };
 
 /**
- * Make a request
- * @param {string} uri
+ * Add credentials for subsequent requests
  * @param {object} credentials
+ * @returns {function} uri => promise
+ */
+/**
+ * Curried request function
+ * @param {string} uri
  * @returns {promise}
  */
-const makeRequest = (uri, credentials) => {
-  const { Authorization } = module.exports.generateOauthParameters(uri, credentials);
+const initRequest = credentials => uri => {
+  const { Authorization } = generateOauthParameters(uri, credentials);
   const options = {
     uri,
     headers: { Authorization, accept: 'application/json' },
@@ -89,7 +93,7 @@ const deepRenameProps = (obj, mapping = {}, replace = {}) => {
  * @param {object} options
  */
 module.exports.sourceNodes = async (
-  { boundActionCreators: { createNode, setPluginStatus } },
+  { boundActionCreators: { createNode, deleteNode }, getNode, getNodes, store },
   {
     // credentials
     oauth_consumer_key,
@@ -97,57 +101,75 @@ module.exports.sourceNodes = async (
     oauth_token,
     oauth_token_secret,
     baseUrl = 'https://rest.immobilienscout24.de/restapi/api/offer/v1.0/user/me/realestate',
+    // remove @ from keys to sanitize for graphql
+    replacer = { substr: '@' },
+    mapping,
   }
 ) => {
-  console.log('Fetching is24 estates');
+  const pluginName = `gatsby-source-is24`;
+
+  console.time('Fetching is24 estates');
 
   if (!oauth_consumer_key || !consumer_secret || !oauth_token || !oauth_token_secret) {
     console.error('Credentials need to be specified');
     process.exit(1);
   }
 
-  const credentials = {
+  const request = initRequest({
     oauth_consumer_key,
     consumer_secret,
     oauth_token,
     oauth_token_secret,
-  };
+  });
+
   // Fetch all estate ids
-  const res = await makeRequest(baseUrl, credentials);
-  const sanitizedRes = deepRenameProps(res, {}, { substr: '@' });
+  const list = (await request(baseUrl))['realestates.realEstates'].realEstateList.realEstateElement;
+
+  const existingNodes = getNodes().filter(({ internal }) => internal.owner === pluginName);
 
   // Fetch single estate details
   const items = await Promise.all(
-    res['realestates.realEstates'].realEstateList.realEstateElement.map(({ id }) => makeRequest(`${baseUrl}/${id}`, credentials))
+    list.map(async element => {
+      const detail = await request(`${baseUrl}/${element['@id']}`);
+
+      // remove weird is24 nesting
+      const [type] = Object.keys(detail);
+      const estate = detail[type];
+      // merge list and details
+      return { ...element, ...estate, type };
+    })
   );
 
-  // remove @ from keys to sanitize for graphql
-  const sanitizedItems = deepRenameProps(items, {}, { substr: '@' });
+  console.log('');
+  console.timeEnd('Fetching is24 estates');
+
+  const sanitizedEstates = deepRenameProps(items, mapping, replacer);
+
+  // remove deleted nodes
+  existingNodes.forEach(({ id: existingId }) => {
+    if (!sanitizedEstates.some(({ id }) => id === existingId)) {
+      deleteNode((existingId, getNode(existingId)));
+    }
+  });
 
   // Process data into nodes.
-  sanitizedItems.forEach(item => {
-    const key = Object.keys(item)[0];
-    const estate = item[key];
-
+  sanitizedEstates.forEach(estate => {
+    const content = JSON.stringify(estate);
     createNode({
       // Data for the node.
       ...estate,
-      // key,
       parent: null,
       children: [],
       internal: {
         type: `is24Estates`,
-        content: JSON.stringify(estate),
+        content,
         contentDigest: crypto
           .createHash(`md5`)
-          .update(JSON.stringify(estate))
+          .update(content)
           .digest(`hex`),
       },
     });
   });
 
-  setPluginStatus({ lastFetched: Date.now() });
-
-  // We're done, return.
   return;
 };
