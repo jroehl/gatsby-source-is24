@@ -1,14 +1,31 @@
 {
   "name": "gatsby-source-is24",
-  "version": "1.0.0",
-  "description": "A gatsby source plugin to fetch estates from immobilienscout24 api",
+  "version": "0.0.1",
+  "description": "A gatsby source plugin to fetch estates from the immobilienscout24 api",
+  "author": {
+    "name": "Johann Roehl",
+    "email": "mail@johannroehl.de",
+    "url": "https://johannroehl.de"
+  },
+  "bugs": {
+    "url": "http://github.com/jroehl/gatsby-source-is24/issues"
+  },
   "scripts": {
     "build": "babel src --out-dir . --ignore __tests__",
     "prepublish": "cross-env NODE_ENV=production npm run build",
-    "watch": "babel -w src --out-dir . --ignore __tests__"
+    "watch": "babel -w src --out-dir . --ignore __tests__",
+    "semantic-release": "semantic-release && npm publish && semantic-release post"
   },
-  "author": "",
   "license": "MIT",
+  "keywords": [
+    "gatsby",
+    "gatsby-plugin",
+    "gatsby-source-plugin",
+    "immobilienscout24",
+    "is24"
+  ],
+  "homepage": "http://github.com/jroehl/gatsby-source-is24#readme",
+  "repository": "http://github.com/jroehl/gatsby-source-is24",
   "dependencies": {
     "babel-cli": "^6.26.0",
     "babel-preset-env": "^1.6.1",
@@ -22,9 +39,18 @@
     "request-promise-native": "^1.0.5"
   },
   "devDependencies": {
-    "cross-env": "^5.1.4"
+    "cross-env": "^5.1.4",
+    "eslint": "^4.19.1",
+    "eslint-config-airbnb": "^16.1.0",
+    "eslint-plugin-import": "^2.10.0",
+    "eslint-plugin-jsx-a11y": "^6.0.3",
+    "eslint-plugin-react": "^7.7.0",
+    "semantic-release": "^15.1.5"
   },
   "babel": {
-    "presets": ["env", "stage-0"]
+    "presets": [
+      "env",
+      "stage-0"
+    ]
   }
 }

@@ -1,6 +1,11 @@
 # gatsby-source-is24
 
-This plugin uses the is24 real estate api and fetches all estates.
+[![Build Status](https://travis-ci.org/jroehl/gatsby-source-is24.svg?branch=master)](https://travis-ci.org/jroehl/gatsby-source-is24)
+[![npm](https://img.shields.io/npm/v/gatsby-source-is24.svg)](https://www.npmjs.com/package/gatsby-source-is24)
+[![Code Style](https://img.shields.io/badge/code%20style-eslint--airbnb-brightgreen.svg)](https://github.com/mycsHQ/eslint-config-airbnb)
+[![semantic-release](https://img.shields.io/badge/%20%20%F0%9F%93%A6%F0%9F%9A%80-semantic--release-e10079.svg)](https://github.com/semantic-release/semantic-release)
+
+This plugin uses the is24 real estate api and fetches all estates for a single user. It does only work with pregenerated oauth credentials. The estates are fetched for the logged in user.
 
 - [gatsby-source-is24](#gatsby-source-is24)
   - [Install](#install)
@@ -60,3 +65,4 @@ singleEstate {
 
 * write tests
 * Find way to install as git package
+* Roll out for other types

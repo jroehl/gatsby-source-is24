@@ -4,7 +4,7 @@ const rp = require('request-promise-native');
 const transform = require('lodash.transform');
 const isObject = require('lodash.isobject');
 
-const pluginName = `gatsby-source-is24`;
+const pluginName = 'gatsby-source-is24';
 
 /**
  * The credentials object
@@ -24,10 +24,14 @@ const pluginName = `gatsby-source-is24`;
  * @returns {string} Authorization header
  */
 const generateOauthParameters = (url, credentials, method = 'GET') => {
-  const { oauth_consumer_key, consumer_secret, oauth_token, oauth_token_secret } = credentials;
+  /* eslint-disable camelcase */
+  const {
+    oauth_consumer_key, consumer_secret, oauth_token, oauth_token_secret,
+  } = credentials;
   if (!oauth_consumer_key || !consumer_secret || !oauth_token || !oauth_token_secret) {
     throw new Error('Credentials need to be specified', credentials);
   }
+  /* eslint-enable */
   const oauth = OAuth({
     consumer: {
       key: oauth_consumer_key,
@@ -41,18 +45,16 @@ const generateOauthParameters = (url, credentials, method = 'GET') => {
         .digest('base64');
     },
   });
-  return oauth.toHeader(
-    oauth.authorize(
-      {
-        url,
-        method,
-      },
-      {
-        key: oauth_token,
-        secret: oauth_token_secret,
-      }
-    )
-  );
+  return oauth.toHeader(oauth.authorize(
+    {
+      url,
+      method,
+    },
+    {
+      key: oauth_token,
+      secret: oauth_token_secret,
+    },
+  ));
 };
 
 /**
@@ -65,7 +67,7 @@ const generateOauthParameters = (url, credentials, method = 'GET') => {
  * @param {string} uri
  * @returns {promise}
  */
-const initRequest = credentials => uri => {
+const initRequest = credentials => (uri) => {
   const { Authorization } = generateOauthParameters(uri, credentials);
   const options = {
     uri,
@@ -91,6 +93,7 @@ const deepRenameProps = (obj, mapping = {}, replace = {}) => {
       currentKey = currentKey.replace(substr, newSubstr);
     }
     // if key is an object recurse
+    // eslint-disable-next-line no-param-reassign
     result[currentKey] = isObject(value) ? deepRenameProps(value, mapping, replace) : value;
   });
 };
@@ -101,7 +104,7 @@ const deepRenameProps = (obj, mapping = {}, replace = {}) => {
  * @param {object} options
  */
 module.exports.sourceNodes = async (
-  { boundActionCreators: { createNode, deleteNode }, getNode, getNodes, store },
+  { boundActionCreators: { createNode, deleteNode }, getNode, getNodes },
   {
     // credentials
     baseUrl = 'https://rest.immobilienscout24.de/restapi/api/offer/v1.0/user/me/realestate',
@@ -109,7 +112,7 @@ module.exports.sourceNodes = async (
     replacer = { substr: '@' },
     mapping,
     ...credentials
-  }
+  },
 ) => {
   console.time('Fetching is24 estates');
 
@@ -121,17 +124,15 @@ module.exports.sourceNodes = async (
   const existingNodes = getNodes().filter(({ internal }) => internal.owner === pluginName);
 
   // Fetch single estate details
-  const items = await Promise.all(
-    list.map(async element => {
-      const detail = await request(`${baseUrl}/${element['@id']}`);
+  const items = await Promise.all(list.map(async (element) => {
+    const detail = await request(`${baseUrl}/${element['@id']}`);
 
-      // remove weird is24 nesting
-      const [type] = Object.keys(detail);
-      const estate = detail[type];
-      // merge list and details
-      return { ...element, ...estate, type };
-    })
-  );
+    // remove weird is24 nesting
+    const [type] = Object.keys(detail);
+    const estate = detail[type];
+    // merge list and details
+    return { ...element, ...estate, type };
+  }));
 
   console.log('');
   console.timeEnd('Fetching is24 estates');
@@ -146,7 +147,7 @@ module.exports.sourceNodes = async (
   });
 
   // Process data into nodes.
-  sanitizedEstates.forEach(estate => {
+  sanitizedEstates.forEach((estate) => {
     const content = JSON.stringify(estate);
     createNode({
       // Data for the node.
@@ -165,6 +166,4 @@ module.exports.sourceNodes = async (
   });
 
   console.log(`Added/updated ${sanitizedEstates.length} estates as nodes`);
-
-  return;
 };
