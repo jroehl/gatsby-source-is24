@@ -1,6 +1,6 @@
 {
   "name": "gatsby-source-is24",
-  "version": "0.0.1",
+  "version": "0.0.0-development",
   "description": "A gatsby source plugin to fetch estates from the immobilienscout24 api",
   "author": {
     "name": "Johann Roehl",
@@ -12,9 +12,10 @@
   },
   "scripts": {
     "build": "babel src --out-dir . --ignore __tests__",
-    "prepublish": "cross-env NODE_ENV=production npm run build",
+    "prepublishOnly": "cross-env NODE_ENV=production npm run build",
     "watch": "babel -w src --out-dir . --ignore __tests__",
-    "semantic-release": "semantic-release && npm publish && semantic-release post"
+    "semantic-release": "semantic-release",
+    "travis-deploy-once": "travis-deploy-once"
   },
   "license": "MIT",
   "keywords": [
@@ -45,7 +46,8 @@
     "eslint-plugin-import": "^2.10.0",
     "eslint-plugin-jsx-a11y": "^6.0.3",
     "eslint-plugin-react": "^7.7.0",
-    "semantic-release": "^15.1.5"
+    "semantic-release": "^15.1.5",
+    "travis-deploy-once": "^4.4.1"
   },
   "babel": {
     "presets": [
