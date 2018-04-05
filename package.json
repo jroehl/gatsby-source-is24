@@ -15,6 +15,7 @@
     "babel-preset-stage-0": "^6.24.1",
     "babel-runtime": "^6.26.0",
     "gatsby-node-helpers": "^0.1.4",
+    "lodash": "^4.17.5",
     "oauth-1.0a": "^2.2.4",
     "request": "^2.85.0",
     "request-promise-native": "^1.0.5"

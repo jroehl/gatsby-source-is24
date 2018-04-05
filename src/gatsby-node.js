@@ -1,6 +1,8 @@
 const crypto = require('crypto');
 const OAuth = require('oauth-1.0a');
 const rp = require('request-promise-native');
+const transform = require('lodash/transform');
+const isObject = require('lodash/isObject');
 
 /**
  * Generate oauth request
@@ -61,8 +63,33 @@ const makeRequest = (uri, credentials) => {
   return rp(options);
 };
 
+/**
+ * Deep map/alter the props in a (nested) object
+ * @param {object/array} obj
+ * @param {object} [mapping={}]
+ * @param {object} [replace={}] { substr, newSubstr = '' }
+ */
+const deepRenameProps = (obj, mapping = {}, replace = {}) => {
+  const { substr, newSubstr = '' } = replace;
+  return transform(obj, (result, value, key) => {
+    // Use mapped key if applicable
+    let currentKey = mapping[key] || key;
+    // replace parts of the key if needed
+    if (typeof currentKey === 'string' && substr) {
+      currentKey = currentKey.replace(substr, newSubstr);
+    }
+    // if key is an object recurse
+    result[currentKey] = isObject(value) ? deepRenameProps(value, mapping, replace) : value;
+  });
+};
+
+/**
+ *
+ * @param {object}
+ * @param {object} options
+ */
 module.exports.sourceNodes = async (
-  { boundActionCreators: { createNode } },
+  { boundActionCreators: { createNode, setPluginStatus } },
   {
     // credentials
     oauth_consumer_key,
@@ -87,20 +114,25 @@ module.exports.sourceNodes = async (
   };
   // Fetch all estate ids
   const res = await makeRequest(baseUrl, credentials);
-  // Fetch single estate
+  const sanitizedRes = deepRenameProps(res, {}, { substr: '@' });
+
+  // Fetch single estate details
   const items = await Promise.all(
-    res['realestates.realEstates'].realEstateList.realEstateElement.map(element => makeRequest(`${baseUrl}/${element['@id']}`, credentials))
+    res['realestates.realEstates'].realEstateList.realEstateElement.map(({ id }) => makeRequest(`${baseUrl}/${id}`, credentials))
   );
 
+  // remove @ from keys to sanitize for graphql
+  const sanitizedItems = deepRenameProps(items, {}, { substr: '@' });
+
   // Process data into nodes.
-  items.forEach(item => {
+  sanitizedItems.forEach(item => {
     const key = Object.keys(item)[0];
     const estate = item[key];
+
     createNode({
       // Data for the node.
-      id: estate['@id'],
       ...estate,
-      key,
+      // key,
       parent: null,
       children: [],
       internal: {
@@ -113,6 +145,8 @@ module.exports.sourceNodes = async (
       },
     });
   });
+
+  setPluginStatus({ lastFetched: Date.now() });
 
   // We're done, return.
   return;
