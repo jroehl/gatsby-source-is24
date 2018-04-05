@@ -59,3 +59,4 @@ singleEstate {
 ## TODO
 
 * write tests
+* Find way to install as git package

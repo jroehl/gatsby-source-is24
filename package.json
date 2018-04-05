@@ -5,7 +5,6 @@
   "scripts": {
     "build": "babel src --out-dir . --ignore __tests__",
     "prepublish": "cross-env NODE_ENV=production npm run build",
-    "preinstall": "npm run prepublish",
     "watch": "babel -w src --out-dir . --ignore __tests__"
   },
   "author": "",
