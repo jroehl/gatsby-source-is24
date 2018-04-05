@@ -164,7 +164,7 @@ module.exports.sourceNodes = async (
     });
   });
 
-  console.log(`Added updated ${sanitizedEstates.length} estates as nodes`);
+  console.log(`Added/updated ${sanitizedEstates.length} estates as nodes`);
 
   return;
 };
