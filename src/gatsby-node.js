@@ -1,29 +1,37 @@
 const crypto = require('crypto');
 const OAuth = require('oauth-1.0a');
 const rp = require('request-promise-native');
-const transform = require('lodash/transform');
-const isObject = require('lodash/isObject');
+const transform = require('lodash.transform');
+const isObject = require('lodash.isobject');
+
+const pluginName = `gatsby-source-is24`;
+
+/**
+ * The credentials object
+ * @typedef {Object} Credentials
+ * @property {string} oauth_consumer_key - The oauth consumer key
+ * @property {string} consumer_secret  - The oauth consumer secret
+ * @property {string} oauth_token - The oauth token
+ * @property {string} oauth_token - The oauth token secret
+ */
 
 /**
  * Generate oauth request
- * credentials must contain
- *  {
- *    oauth_consumer_key : 'oauth_consumer_key',
- *    consumer_secret : 'consumer_secret',
- *    oauth_token : 'oauth_token',
- *    oauth_token_secret : 'oauth_token_secret',
- *  }
- *
  * @param {string} url
- * @param {object} credentials
+ * @param {Credentials} credentials
  * @param {string} [method='GET']
+ * @throws {error} 'Credentials need to be specified'
  * @returns {string} Authorization header
  */
 const generateOauthParameters = (url, credentials, method = 'GET') => {
+  const { oauth_consumer_key, consumer_secret, oauth_token, oauth_token_secret } = credentials;
+  if (!oauth_consumer_key || !consumer_secret || !oauth_token || !oauth_token_secret) {
+    throw new Error('Credentials need to be specified', credentials);
+  }
   const oauth = OAuth({
     consumer: {
-      key: credentials.oauth_consumer_key,
-      secret: credentials.consumer_secret,
+      key: oauth_consumer_key,
+      secret: consumer_secret,
     },
     signature_method: 'HMAC-SHA1',
     hash_function(baseString, key) {
@@ -40,8 +48,8 @@ const generateOauthParameters = (url, credentials, method = 'GET') => {
         method,
       },
       {
-        key: credentials.oauth_token,
-        secret: credentials.oauth_token_secret,
+        key: oauth_token,
+        secret: oauth_token_secret,
       }
     )
   );
@@ -49,7 +57,7 @@ const generateOauthParameters = (url, credentials, method = 'GET') => {
 
 /**
  * Add credentials for subsequent requests
- * @param {object} credentials
+ * @param {Credentials} credentials
  * @returns {function} uri => promise
  */
 /**
@@ -88,7 +96,7 @@ const deepRenameProps = (obj, mapping = {}, replace = {}) => {
 };
 
 /**
- *
+ * Source the nodes
  * @param {object}
  * @param {object} options
  */
@@ -96,31 +104,16 @@ module.exports.sourceNodes = async (
   { boundActionCreators: { createNode, deleteNode }, getNode, getNodes, store },
   {
     // credentials
-    oauth_consumer_key,
-    consumer_secret,
-    oauth_token,
-    oauth_token_secret,
     baseUrl = 'https://rest.immobilienscout24.de/restapi/api/offer/v1.0/user/me/realestate',
     // remove @ from keys to sanitize for graphql
     replacer = { substr: '@' },
     mapping,
+    ...credentials
   }
 ) => {
-  const pluginName = `gatsby-source-is24`;
-
   console.time('Fetching is24 estates');
 
-  if (!oauth_consumer_key || !consumer_secret || !oauth_token || !oauth_token_secret) {
-    console.error('Credentials need to be specified');
-    process.exit(1);
-  }
-
-  const request = initRequest({
-    oauth_consumer_key,
-    consumer_secret,
-    oauth_token,
-    oauth_token_secret,
-  });
+  const request = initRequest(credentials);
 
   // Fetch all estate ids
   const list = (await request(baseUrl))['realestates.realEstates'].realEstateList.realEstateElement;
@@ -161,15 +154,17 @@ module.exports.sourceNodes = async (
       parent: null,
       children: [],
       internal: {
-        type: `is24Estates`,
+        type: 'is24Estates',
         content,
         contentDigest: crypto
-          .createHash(`md5`)
+          .createHash('md5')
           .update(content)
-          .digest(`hex`),
+          .digest('hex'),
       },
     });
   });
+
+  console.log(`Added updated ${sanitizedEstates.length} estates as nodes`);
 
   return;
 };
