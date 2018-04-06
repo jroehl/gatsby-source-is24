@@ -97,40 +97,21 @@ const deepRenameProps = (obj, mapping = {}, replace = {}) => {
 };
 
 /**
- * Sanitize the urls by replacing the width and height
- * @param {array} urls
- * @param {object} config
- * @param {string} [method='SCALE_AND_CROP']
- * @returns {array}
- */
-const sanitizePictureUrl = (urls, { width, height }, method = 'SCALE_AND_CROP') => {
-  const url = urls[0].url.find(scaleUrl => scaleUrl['@scale'] === method);
-  if (!url) return undefined;
-  return url['@href'].replace('%WIDTH%', width).replace('%HEIGHT%', height);
-};
-
-/**
  * Get the attachments of an estate and return estate with sanitized urls
  * @param {string} attachmentsUrl
  * @param {function} request
  * @returns {promise}
  */
-const getAttachments = (attachmentsUrl, request, imgMaxPixel) => {
+const getAttachments = (attachmentsUrl, request) => {
   if (!attachmentsUrl) return Promise.resolve([]);
   const key = 'common.attachments';
   return request(attachmentsUrl).then((result) => {
     const { attachment = [] } = (result[key] && result[key][0]) || {};
-    return attachment.map(({ title, urls, url }) => {
-      if (!urls) return { title, url };
-      return {
-        title,
-        url: sanitizePictureUrl(urls, imgMaxPixel, 'SCALE'),
-      };
-    });
+    return attachment;
   });
 };
 
-exports = {
+module.exports = {
   initRequest,
   getAttachments,
   deepRenameProps,

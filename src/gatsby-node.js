@@ -16,7 +16,6 @@ module.exports.sourceNodes = async (
     // remove @ from keys to sanitize for graphql
     replacer = { substr: '@' },
     mapping,
-    imgMaxPixel = 3000,
     ...credentials
   },
 ) => {
@@ -36,13 +35,17 @@ module.exports.sourceNodes = async (
     // remove weird is24 nesting
     const [type] = Object.keys(detail);
     const estate = detail[type];
-    const attachments = await getAttachments(estate.attachments, request, imgMaxPixel);
-    // merge list and details
+    const attachmentUrl =
+        estate.attachments && estate.attachments[0]
+          ? estate.attachments[0]['@xlink.href']
+          : undefined;
+
+      // merge list and details
     return {
       ...element,
       ...estate,
       type,
-      attachments,
+      attachments: attachmentUrl ? await getAttachments(attachmentUrl, request) : undefined,
     };
   }));
 

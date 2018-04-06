@@ -33,7 +33,6 @@ plugins: [
     // baseUrl = 'https://rest.immobilienscout24.de/restapi/api/offer/v1.0/user/me/realestate', // The base url to query
     // replacer = { substr: '@' }, // replacer object to be used for sanitizing the properties
     // mapping, // mapping object to be used for mapping the properties
-    // imgMaxPixel = 3000, // the pixel of the longest side of the image to crop
   }
 ]
 ```
