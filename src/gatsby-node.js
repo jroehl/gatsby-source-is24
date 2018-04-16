@@ -1,5 +1,6 @@
 const crypto = require('crypto');
 const { getAttachments, initRequest, deepRenameProps } = require('./utils');
+const traverse = require('traverse');
 
 const pluginName = 'gatsby-source-is24';
 
@@ -66,7 +67,8 @@ module.exports.sourceNodes = async (
     const content = JSON.stringify(estate);
     createNode({
       // Data for the node.
-      ...estate,
+      estate: content,
+      id: estate.id,
       parent: null,
       children: [],
       internal: {
